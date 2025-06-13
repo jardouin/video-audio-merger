@@ -1,8 +1,10 @@
+run = "streamlit run main.py" # <--- MAKE SURE THIS LINE IS HERE AND AT THE TOP
 entrypoint = "main.py"
 modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["ffmpeg-full"]
 
 [unitTest]
 language = "python3"
@@ -11,5 +13,9 @@ language = "python3"
 requiredFiles = [".replit", "replit.nix"]
 
 [deployment]
-run = ["python3", "main.py"]
+run = "streamlit run main.py"
 deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 8501
+externalPort = 80
