@@ -11,6 +11,7 @@ Final Video Duration: Define the duration of your resulting video.
 Real-time Preview: Preview YouTube videos directly within the interface.
 Multi-language Support: Interface available in English, Spanish, Mandarin, French, and Portuguese.
 Direct Download: Download the mixed video directly from the application.
+
 🚀 How to Use
 Visit the deployed application on Streamlit Community Cloud: YOUR_STREAMLIT_CLOUD_APP_URL
 Select Your Language: Use the language selector in the left sidebar to choose your preferred language (English by default).
@@ -20,6 +21,7 @@ Adjust Music Start Time: If you want the music to start at a specific point, ent
 Set Duration (Optional): If you want the final video to have a specific duration, enter it in seconds. Otherwise, the main video's duration will be used.
 Adjust Volumes: Use the sliders to modify the volume of each audio track to your liking.
 Click "Process": The application will download the audios, mix them with the video, and present you with a final video that you can preview and download.
+
 🛠️ Local Development
 If you wish to run this application on your local machine for development or testing:
 
@@ -56,12 +58,12 @@ main.py: The main Streamlit application code.
 requirements.txt: Lists Python dependencies.
 packages.txt: Lists operating system-level dependencies for Streamlit Community Cloud (contains ffmpeg).
 README.md: This file.
+
 📄 License
 This project is licensed under the MIT License (if you choose MIT, create a LICENSE file in your repo with the MIT license text).
 
 ❤️ Support the Project
 If you find this tool useful, please consider supporting us! Every contribution helps us maintain and improve the application.
-
 
 Remember to replace these placeholders:
 
