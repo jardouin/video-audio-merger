@@ -372,7 +372,7 @@ st.write(current_texts["support_text"])
 
 st.markdown(
     f"""
-    <a href="https://www.buymeacoffee.com/tu_nombre_de_usuario" target="_blank">
+    <a href="https://www.buymeacoffee.com/jardouin" target="_blank">
         <img src="https://img.buymeacoffee.com/button-api/?text={current_texts['buy_me_a_coffee_text']}&slug=tu_nombre_de_usuario&button_colour=FFDD00&font_colour=000000&font_family=Inter&text_size=16&text_color=000000&outline_color=000000&coffee_text=Café" />
     </a>
     """,
