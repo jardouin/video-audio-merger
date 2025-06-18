@@ -282,10 +282,10 @@ music_volume = st.slider(
 st.markdown("---")
 
 # --- Botón de Procesar ---
+
 if st.button(current_texts["process_button"]):
     if not video_url or not music_url:
         st.warning(current_texts["warning_enter_both_urls"])
-    # Validación de URLs más generalizada antes de yt-dlp
     elif not (("youtube.com/watch" in video_url or "youtu.be/" in video_url) and \
               ("youtube.com/watch" in music_url or "youtu.be/" in music_url)):
         st.error(current_texts["error_invalid_youtube_urls"])
@@ -297,27 +297,46 @@ if st.button(current_texts["process_button"]):
             output_file = f"output_mixed_video_{unique_id}.mp4"
 
             try:
+                # Verifica si picaron.txt está presente
+                cookie_file = "picaron.txt"
+                use_cookies = os.path.exists(cookie_file)
+
+                # --- VIDEO ---
                 ydl_opts_video = {
                     'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
                     'outtmpl': video_file,
                     'merge_output_format': 'mp4',
                     'quiet': True,
-                    'no_warnings': True
+                    'no_warnings': True,
+                    'ignoreerrors': True,
                 }
+                if use_cookies:
+                    ydl_opts_video['cookiefile'] = cookie_file
+
                 with YoutubeDL(ydl_opts_video) as ydl:
                     st.info(current_texts["info_downloading_main_video"])
-                    ydl.download([video_url])
+                    result = ydl.download([video_url])
+                    if result != 0 or not os.path.exists(video_file):
+                        raise RuntimeError("Video principal no pudo descargarse. Puede requerir verificación CAPTCHA.")
 
+                # --- MÚSICA ---
                 ydl_opts_music = {
                     'format': 'bestaudio[ext=m4a]/bestaudio',
                     'outtmpl': music_file,
                     'quiet': True,
-                    'no_warnings': True
+                    'no_warnings': True,
+                    'ignoreerrors': True,
                 }
+                if use_cookies:
+                    ydl_opts_music['cookiefile'] = cookie_file
+
                 with YoutubeDL(ydl_opts_music) as ydl:
                     st.info(current_texts["info_downloading_music_audio"])
-                    ydl.download([music_url])
+                    result = ydl.download([music_url])
+                    if result != 0 or not os.path.exists(music_file):
+                        raise RuntimeError("El audio de música no pudo descargarse. Puede requerir verificación CAPTCHA.")
 
+                # --- Mezcla con ffmpeg ---
                 st.info(current_texts["info_mixing_audio_generating_video"])
 
                 command = [
@@ -342,7 +361,7 @@ if st.button(current_texts["process_button"]):
                         command.extend(["-t", str(duration_seconds)])
                     except ValueError:
                         st.warning(current_texts["warning_invalid_duration"])
-                
+
                 command.append(output_file)
 
                 process = subprocess.run(command, capture_output=True, text=True)
@@ -364,6 +383,7 @@ if st.button(current_texts["process_button"]):
                 for f in [video_file, music_file, output_file]:
                     if os.path.exists(f):
                         os.remove(f)
+
 
 # --- Sección de Apoyo (Buy Me a Coffee) ---
 st.markdown("---")
