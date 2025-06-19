@@ -286,9 +286,6 @@ st.markdown("---")
 if st.button(current_texts["process_button"]):
     if not video_url or not music_url:
         st.warning(current_texts["warning_enter_both_urls"])
-    elif not (("youtube.com/watch" in video_url or "youtu.be/" in video_url) and \
-              ("youtube.com/watch" in music_url or "youtu.be/" in music_url)):
-        st.error(current_texts["error_invalid_youtube_urls"])
     else:
         with st.spinner(current_texts["spinner_downloading_processing"]):
             unique_id = str(uuid.uuid4())[:8]
@@ -393,7 +390,7 @@ st.write(current_texts["support_text"])
 st.markdown(
     f"""
     <a href="https://www.buymeacoffee.com/jardouin" target="_blank">
-        <img src="https://img.buymeacoffee.com/button-api/?text={current_texts['buy_me_a_coffee_text']}&slug=tu_nombre_de_usuario&button_colour=FFDD00&font_colour=000000&font_family=Inter&text_size=16&text_color=000000&outline_color=000000&coffee_text=Café" />
+        <img src="https://img.buymeacoffee.com/button-api/?text={current_texts['buy_me_a_coffee_text']}&slug=jardouin&button_colour=FFDD00&font_colour=000000&font_family=Inter&text_size=16&text_color=000000&outline_color=000000&coffee_text=Café" />
     </a>
     """,
     unsafe_allow_html=True
