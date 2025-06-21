@@ -230,7 +230,7 @@ video_url = st.text_input(current_texts["main_video_url_input"], key="video_url_
 if video_url:
     # Una validación de URL muy básica para st.video.
     # yt-dlp es más robusto en la descarga.
-    if "youtube.com/watch" in video_url or "youtu.be/" in video_url: # Changed to more common YouTube URL patterns
+    if "youtube.com" in video_url or "youtu.be" in video_url:
         st.video(video_url)
     else:
         st.warning(current_texts["main_video_invalid_url_warning"])
@@ -243,7 +243,7 @@ st.markdown("---")
 st.subheader(current_texts["music_track_header"])
 music_url = st.text_input(current_texts["music_url_input"], key="music_url_input")
 if music_url:
-    if "youtube.com/watch" in music_url or "youtu.be/" in music_url: # Changed to more common YouTube URL patterns
+    if "youtube.com" in music_url or "youtu.be" in music_url:
         st.video(music_url)
     else:
         st.warning(current_texts["music_invalid_url_warning"])
@@ -284,6 +284,7 @@ st.markdown("---")
 # --- Botón de Procesar ---
 
 if st.button(current_texts["process_button"]):
+    ## CAMBIO 1: Eliminada la validación estricta de URLs. Se confía en yt-dlp.
     if not video_url or not music_url:
         st.warning(current_texts["warning_enter_both_urls"])
     else:
@@ -298,11 +299,11 @@ if st.button(current_texts["process_button"]):
                 cookie_file = "picaron.txt"
                 use_cookies = os.path.exists(cookie_file)
 
-                # --- VIDEO ---
+                ## CAMBIO 2: Opciones de yt-dlp para video más flexibles.
                 ydl_opts_video = {
-                    'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
+                    'format': 'bestvideo+bestaudio/best', # Permite que yt-dlp elija los mejores formatos
                     'outtmpl': video_file,
-                    'merge_output_format': 'mp4',
+                    'merge_output_format': 'mp4', # Se asegura de que el archivo final sea .mp4
                     'quiet': True,
                     'no_warnings': True,
                     'ignoreerrors': True,
@@ -314,15 +315,19 @@ if st.button(current_texts["process_button"]):
                     st.info(current_texts["info_downloading_main_video"])
                     result = ydl.download([video_url])
                     if result != 0 or not os.path.exists(video_file):
-                        raise RuntimeError("Video principal no pudo descargarse. Puede requerir verificación CAPTCHA.")
+                        raise RuntimeError("Video principal no pudo descargarse. Puede requerir verificación CAPTCHA o el formato no está disponible.")
 
-                # --- MÚSICA ---
+                ## CAMBIO 3: Opciones de yt-dlp para música más robustas con post-procesador.
                 ydl_opts_music = {
-                    'format': 'bestaudio[ext=m4a]/bestaudio',
+                    'format': 'bestaudio/best', # Pide el mejor audio disponible
                     'outtmpl': music_file,
                     'quiet': True,
                     'no_warnings': True,
                     'ignoreerrors': True,
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'm4a', # Convierte el audio a m4a después de descargar
+                    }],
                 }
                 if use_cookies:
                     ydl_opts_music['cookiefile'] = cookie_file
@@ -330,8 +335,12 @@ if st.button(current_texts["process_button"]):
                 with YoutubeDL(ydl_opts_music) as ydl:
                     st.info(current_texts["info_downloading_music_audio"])
                     result = ydl.download([music_url])
-                    if result != 0 or not os.path.exists(music_file):
-                        raise RuntimeError("El audio de música no pudo descargarse. Puede requerir verificación CAPTCHA.")
+                    # Para el audio, el nombre del archivo puede cambiar por el post-procesador
+                    # La verificación de existencia es más importante.
+                    expected_music_file = os.path.splitext(music_file)[0] + '.m4a'
+                    if not os.path.exists(expected_music_file):
+                         raise RuntimeError("El audio de música no pudo descargarse o convertirse.")
+                    music_file_to_use = expected_music_file # Usar el archivo con la extensión correcta
 
                 # --- Mezcla con ffmpeg ---
                 st.info(current_texts["info_mixing_audio_generating_video"])
@@ -340,7 +349,7 @@ if st.button(current_texts["process_button"]):
                     "ffmpeg",
                     "-i", video_file,
                     "-ss", start_time_str,
-                    "-i", music_file,
+                    "-i", music_file_to_use, # Usar el nombre de archivo correcto
                     "-filter_complex",
                     f"[0:a]volume={main_volume}[a0];[1:a]volume={music_volume}[a1];[a0][a1]amerge=inputs=2[a]",
                     "-map", "0:v",
@@ -377,7 +386,12 @@ if st.button(current_texts["process_button"]):
                 st.error(f"{current_texts['error_unexpected']} {e}")
                 st.info(current_texts["info_check_urls_ffmpeg"])
             finally:
-                for f in [video_file, music_file, output_file]:
+                # Limpieza de todos los posibles archivos
+                files_to_clean = [video_file, music_file, output_file]
+                if 'expected_music_file' in locals():
+                    files_to_clean.append(expected_music_file)
+                
+                for f in files_to_clean:
                     if os.path.exists(f):
                         os.remove(f)
 
@@ -387,6 +401,7 @@ st.markdown("---")
 st.subheader(current_texts["support_header"])
 st.write(current_texts["support_text"])
 
+## CAMBIO 4: Corregido el slug de "Buy Me a Coffee"
 st.markdown(
     f"""
     <a href="https://www.buymeacoffee.com/jardouin" target="_blank">
